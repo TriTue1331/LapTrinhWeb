@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <title>Cập nhật thú cưng</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 350px;
+        text-align: center;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      label {
+        display: block;
+        text-align: left;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      textarea {
+        resize: none;
+        height: 80px;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+
+      /* ID không chỉnh sửa */
+      input[readonly] {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Cập nhật thú cưng</h2>
+
+      <label>Nhập 3 số cuối của ID thú cưng:</label>
+      <input type="text" id="last3Digits" maxlength="3" placeholder="VD: 123" />
+      <button type="button" onclick="findPet()">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+
+      <form id="petForm" style="display: none" enctype="multipart/form-data">
+        <label>ID:</label>
+        <input type="text" id="petID" readonly />
+
+        <label>Name:</label>
+        <input type="text" id="petName" />
+
+        <label>Age:</label>
+        <input type="number" id="petAge" />
+
+        <label>Price (VND):</label>
+        <input type="text" id="petPrice" />
+
+        <label>Species:</label>
+        <input type="text" id="petSpecies" />
+
+        <label>Gender:</label>
+        <select id="petGender">
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+
+        <label>Ảnh thú cưng:</label>
+        <input type="file" id="petImage" name="petImage" accept="image/*" />
+
+        <label>Describe:</label>
+        <textarea id="petDescribe"></textarea>
+
+        <button type="button" onclick="updatePet()">Cập nhật</button>
+      </form>
+    </div>
+
+    <script>
+      let dsPET = [];
+
+      // Lấy danh sách thú cưng từ API
+      fetch("/dsPET")
+        .then((response) => response.json())
+        .then((data) => {
+          dsPET = data;
+          const petSelect = document.getElementById("petSelect");
+
+          // Thêm thú cưng vào dropdown
+          data.forEach((pet) => {
+            let option = document.createElement("option");
+            option.value = pet.ID;
+            option.textContent = pet.Name;
+            petSelect.appendChild(option);
+          });
+        });
+      // Cập nhật dữ liệu thú cưng
+      function updatePet() {
+        const form = document.getElementById("petForm");
+        const formData = new FormData(form); // Lấy luôn cả file
+
+        formData.append("id", document.getElementById("petID").value);
+        formData.append("name", document.getElementById("petName").value);
+        formData.append("age", document.getElementById("petAge").value);
+        formData.append("price", document.getElementById("petPrice").value);
+        formData.append("species", document.getElementById("petSpecies").value);
+        formData.append("gender", document.getElementById("petGender").value);
+        formData.append(
+          "describe",
+          document.getElementById("petDescribe").value
+        );
+
+        fetch("/updatePet", {
+          method: "POST",
+          body: formData,
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              const text = await res.text();
+              throw new Error(text);
+            }
+            return res.json();
+          })
+          .then(() => {
+            alert("Cập nhật thành công!");
+            window.location.href = "/";
+          })
+          .catch((error) => {
+            console.error("Lỗi khi cập nhật:", error);
+            alert("Có lỗi xảy ra: " + error.message);
+          });
+      }
+
+      function findPet() {
+        const input = document.getElementById("last3Digits").value.trim();
+        if (input.length !== 3) {
+          alert("Vui lòng nhập đúng 3 số cuối của ID!");
+          return;
+        }
+
+        const pet = dsPET.find((pet) => pet.ID.slice(-3) === input);
+
+        if (pet) {
+          document.getElementById("petID").value = pet.ID;
+          document.getElementById("petName").value = pet.Name;
+          document.getElementById("petAge").value = pet.Age;
+          document.getElementById("petPrice").value = pet.Price;
+          document.getElementById("petSpecies").value = pet.Species;
+          document.getElementById("petGender").value = pet.Gender;
+          document.getElementById("petDescribe").value = pet.Describe;
+          document.getElementById("petForm").style.display = "block";
+        } else {
+          alert("Không tìm thấy thú cưng với 3 số cuối này.");
+          document.getElementById("petForm").style.display = "none";
+        }
+      }
+    </script>
+  </body>
+</html>

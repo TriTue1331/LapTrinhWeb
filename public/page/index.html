@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <title>ShopPet - Danh sách thú cưng</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: url("https://source.unsplash.com/1600x900/?nature,green")
+          no-repeat center center fixed;
+        background-size: cover;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .btn-container {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+      .btn {
+        padding: 10px 15px;
+        margin: 5px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background 0.3s ease-in-out;
+      }
+      .btn:hover {
+        background-color: #388e3c;
+      }
+
+      h2 {
+        text-align: center;
+        margin-top: 20px;
+        color: black;
+        text-shadow: 2px 2px 4px rgb(255, 255, 255);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+      }
+      th {
+        background-color: #66bb6a;
+        color: white;
+      }
+      tr:nth-child(even) {
+        background-color: #f2fff2;
+      }
+      tr:hover {
+        background-color: #c8e6c9;
+      }
+
+      img {
+        width: 80px;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="btn-container">
+      <button class="btn" onclick="location.href='add.html'" title="Thêm">
+        <i class="fa-solid fa-plus"></i>
+      </button>
+      <button
+        class="btn"
+        onclick="location.href='update.html'"
+        title="Cập nhật"
+      >
+        <i class="fa-solid fa-pen"></i>
+      </button>
+      <button class="btn" onclick="location.href='delete.html'" title="Xóa">
+        <i class="fa-solid fa-minus"></i>
+      </button>
+      <button class="btn" onclick="window.location.reload()" title="Làm mới">
+        <i class="fa-solid fa-arrows-rotate"></i>
+      </button>
+    </div>
+    <h2>Danh sách thú cưng</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Image</th>
+          <th>Age</th>
+          <th>Price (VND)</th>
+          <th>Species</th>
+          <th>Gender</th>
+          <th>Describe</th>
+        </tr>
+      </thead>
+      <tbody id="petTableBody">
+        <!-- Dữ liệu sẽ được thêm vào đây -->
+      </tbody>
+    </table>
+
+    <script>
+      async function loadPets() {
+        try {
+          const response = await fetch("http://localhost:3000/dsPET");
+          const pets = await response.json();
+
+          console.log("Dữ liệu API trả về:", pets); // Debug API trả về
+
+          // Kiểm tra nếu dữ liệu trả về không phải là mảng
+          if (!Array.isArray(pets)) {
+            throw new Error("Dữ liệu trả về không phải là mảng");
+          }
+
+          const tableBody = document.getElementById("petTableBody");
+          tableBody.innerHTML = ""; // Xóa dữ liệu cũ
+
+          pets.forEach((pet) => {
+            console.log(`Hình ảnh của ${pet.Name}:`, pet.Image); // Debug ảnh
+
+            const row = `
+        <tr>
+          <td>${pet.ID}</td>
+          <td>${pet.Name}</td>
+          <td><img src="/images/${pet.Image}?v=${Date.now()}" alt="${
+              pet.Name
+            }" width="100" onerror="this.src='/images/default.jpg'"></td>
+          <td>${pet.Age}</td>
+          <td>${
+            pet.Price && !isNaN(pet.Price)
+              ? Number(pet.Price).toLocaleString()
+              : "Không rõ"
+          } VND</td>
+          <td>${pet.Species}</td>
+          <td>${pet.Gender}</td>
+          <td>${pet.Describe}</td>
+        </tr>
+      `;
+            tableBody.innerHTML += row;
+          });
+        } catch (error) {
+          console.error("Lỗi khi tải dữ liệu:", error);
+        }
+      }
+
+      // Gọi hàm khi trang tải xong
+      window.onload = loadPets;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thêm thú cưng</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 350px;
+        text-align: center;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      label {
+        display: block;
+        text-align: left;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      textarea {
+        resize: none;
+        height: 80px;
+      }
+
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background-color: #0056b3;
+      }
+      input[readonly] {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Thêm thú cưng mới</h2>
+      <form id="petForm" enctype="multipart/form-data">
+        <label>ID:</label>
+        <input type="text" name="id" id="petID" readonly />
+
+        <label>Name:</label>
+        <input type="text" name="name" required />
+
+        <label>Age:</label>
+        <input type="number" name="age" min="0" required />
+
+        <label>Price (VND):</label>
+        <input type="text" name="price" required />
+
+        <label>Species:</label>
+        <input type="text" name="species" required />
+
+        <label>Gender:</label>
+        <select name="gender" required>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+
+        <label>Image:</label>
+        <input type="file" name="image" accept="image/*" required />
+
+        <label>Describe:</label>
+        <textarea name="describe" required></textarea>
+
+        <button type="submit">Thêm</button>
+      </form>
+    </div>
+
+    <script>
+      async function getNextPetID() {
+        try {
+          let response = await fetch("/dsPET"); // Gọi API lấy danh sách thú cưng
+          let dsPET = await response.json();
+
+          if (dsPET.length === 0) {
+            return "PET-001"; // Nếu danh sách rỗng, bắt đầu từ PET-001
+          }
+
+          let lastID = dsPET
+            .map((pet) => parseInt(pet.ID.split("-")[1], 10)) // Lấy số ID sau "PET-"
+            .sort((a, b) => b - a)[0]; // Sắp xếp và lấy ID lớn nhất
+
+          let nextNumber = lastID + 1;
+          return `PET-${String(nextNumber).padStart(3, "0")}`;
+        } catch (error) {
+          console.error("Lỗi khi lấy danh sách thú cưng:", error);
+          return "PET-001"; // Nếu lỗi, mặc định PET-001
+        }
+      }
+
+      // Khi load trang, lấy ID mới
+      window.onload = async () => {
+        document.getElementById("petID").value = await getNextPetID();
+      };
+      document
+        .getElementById("petForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault(); // Ngăn chặn load lại trang
+
+          let formData = new FormData(this); // Lấy toàn bộ dữ liệu từ form
+
+          try {
+            let response = await fetch("/addPet", {
+              method: "POST",
+              body: formData, // Gửi FormData (chứa cả file)
+            });
+
+            let data = await response.json();
+
+            if (response.ok) {
+              alert("Thêm thành công!");
+              window.location.href = "/"; // Chuyển về trang chủ
+            } else {
+              throw new Error(
+                data.message || "Có lỗi xảy ra khi thêm thú cưng."
+              );
+            }
+          } catch (error) {
+            console.error("Lỗi khi thêm thú cưng:", error);
+            alert("Lỗi: " + error.message);
+          }
+        });
+    </script>
+  </body>
+</html>
