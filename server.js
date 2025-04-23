@@ -151,23 +151,45 @@ app.get("/dsPET", async (req, res) => {
 });
 
 // ❗ API xoá pet từ MongoDB
-app.delete("/delete-pet", async (req, res) => {
+app.get("/delete.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/page/delete.html"));
+});
+app.post("/filter-pets", async (req, res) => {
   try {
     if (!petsCollection) throw new Error("Collection chưa được khởi tạo");
 
-    const filter = req.body; // Dữ liệu gửi từ client
-    console.log("📥 Điều kiện xoá:", filter);
+    const { ID } = req.body;
 
-    const result = await petsCollection.deleteMany(filter);
+    const filter = {};
+    if (ID) filter.ID = ID; // Tìm kiếm theo ID
 
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Không tìm thấy pet phù hợp để xoá" });
+    const pets = await petsCollection.find(filter).toArray();
+    res.json(pets);
+  } catch (error) {
+    console.error("❌ Lỗi khi lọc pet:", error);
+    res.status(500).json({ message: "Lỗi server khi lọc pet" });
+  }
+});
+app.delete("/delete-pets", async (req, res) => {
+  try {
+    if (!petsCollection) throw new Error("Collection chưa được khởi tạo");
+
+    const { ids } = req.body;
+
+    if (!ids || ids.length === 0) {
+      return res.status(400).json({ message: "Danh sách ID không hợp lệ!" });
     }
 
-    res.json({ message: "Xoá pet thành công", deletedCount: result.deletedCount });
+    const result = await petsCollection.deleteMany({ ID: { $in: ids } });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Không tìm thấy pet phù hợp để xóa!" });
+    }
+
+    res.json({ message: `Xóa thành công ${result.deletedCount} pet(s)!` });
   } catch (error) {
-    console.error("❌ Lỗi khi xoá pet:", error);
-    res.status(500).json({ message: "Lỗi server khi xoá pet" });
+    console.error("❌ Lỗi khi xóa pet:", error);
+    res.status(500).json({ message: "Lỗi server khi xóa pet" });
   }
 });
 
