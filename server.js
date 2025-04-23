@@ -157,28 +157,34 @@ app.get("/dsPET", async (req, res) => {
 app.get("/delete-pet.html", (req, res) => {
   res.sendFile(path.join(__dirname, "public/page/delete-pet.html"));
 });
-app.delete("/delete-pet", async (req, res) => {
+app.delete("/delete-one-pet", async (req, res) => {
   try {
-    if (!petsCollection) throw new Error("Collection chưa được khởi tạo");
-
-    const petIdToDelete = req.body.id; // Lấy giá trị ID từ req.body
-    console.log("📥 ID cần xoá:", petIdToDelete);
-
-    const result = await petsCollection.deleteMany({ ID: petIdToDelete }); // Sử dụng ID làm điều kiện lọc
+    const { id } = req.body;
+    const result = await petsCollection.deleteOne({ ID: id });
 
     if (result.deletedCount === 0) {
-      return res
-        .status(404)
-        .json({ message: "Không tìm thấy pet phù hợp để xoá" });
+      return res.status(404).json({ message: "Không tìm thấy thú cưng để xóa!" });
     }
 
-    res.json({
-      message: "Xoá pet thành công",
-      deletedCount: result.deletedCount,
-    });
+    res.json({ message: "Xóa thú cưng thành công!" });
   } catch (error) {
-    console.error("❌ Lỗi khi xoá pet:", error);
-    res.status(500).json({ message: "Lỗi server khi xoá pet" });
+    console.error("❌ Lỗi khi xóa thú cưng:", error);
+    res.status(500).json({ message: "Lỗi server khi xóa thú cưng!" });
+  }
+});
+app.delete("/delete-many-pets", async (req, res) => {
+  try {
+    const { ids } = req.body;
+    const result = await petsCollection.deleteMany({ ID: { $in: ids } });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Không tìm thấy thú cưng để xóa!" });
+    }
+
+    res.json({ message: `Xóa thành công ${result.deletedCount} thú cưng!` });
+  } catch (error) {
+    console.error("❌ Lỗi khi xóa nhiều thú cưng:", error);
+    res.status(500).json({ message: "Lỗi server khi xóa nhiều thú cưng!" });
   }
 });
 

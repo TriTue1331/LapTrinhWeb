@@ -12,11 +12,8 @@
       body {
         font-family: Arial, sans-serif;
         background-color: #f4f4f4;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
         margin: 0;
+        padding: 20px;
       }
 
       .container {
@@ -24,62 +21,46 @@
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        width: 350px;
-        text-align: center;
-        max-height: 90vh;
-        overflow-y: auto;
+        max-width: 800px;
+        margin: 20px auto;
       }
 
       h2 {
         margin-bottom: 20px;
         color: #333;
+        text-align: center;
       }
 
       label {
-        display: block;
-        text-align: left;
-        margin-top: 10px;
         font-weight: bold;
+        margin-top: 10px;
+        display: block;
       }
 
       input,
-      select,
-      textarea {
+      button,
+      select {
         width: 100%;
-        padding: 8px;
-        margin-top: 5px;
-        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
         border-radius: 5px;
-      }
-
-      textarea {
-        resize: none;
-        height: 80px;
-      }
-
-      button {
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 5px;
-        margin-top: 15px;
-        cursor: pointer;
-        width: 100%;
         font-size: 16px;
       }
 
-      button:hover {
+      button {
         background-color: #388e3c;
+        color: white;
+        border: none;
+        cursor: pointer;
       }
 
-      input[readonly] {
-        background-color: #e9ecef;
-        cursor: not-allowed;
+      button:hover {
+        background-color: #4caf50;
       }
 
       .btn-back {
-        position: absolute;
+        position: fixed;
         top: 20px;
         left: 20px;
         z-index: 10;
@@ -93,10 +74,15 @@
         font-size: 16px;
         cursor: pointer;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
       }
 
       .button-back:hover {
         background-color: #388e3c;
+      }
+
+      .section {
+        margin-bottom: 30px;
       }
     </style>
   </head>
@@ -109,96 +95,125 @@
     <div class="container">
       <h2>Xóa thú cưng</h2>
 
-      <label>Nhập 3 số cuối của ID thú cưng:</label>
-      <input type="text" id="last3Digits" maxlength="3" placeholder="VD: 123" />
-      <button type="button" onclick="findPet()">
-        <i class="fa-solid fa-magnifying-glass"></i>
-      </button>
+      <!-- Chọn loại xóa -->
+      <div class="section">
+        <label for="deleteType">Chọn loại xóa:</label>
+        <select id="deleteType">
+          <option value="one">Xóa 1 thú cưng</option>
+          <option value="many">Xóa nhiều thú cưng</option>
+        </select>
+      </div>
 
-      <form id="deleteForm" style="display: none">
-        <label>ID:</label>
-        <input type="text" id="petID" name="id" readonly />
+      <!-- Xóa 1 thú cưng -->
+      <div class="section" id="deleteOneSection">
+        <h3>Xóa 1 thú cưng</h3>
+        <form id="deleteOneForm">
+          <label for="deleteOneId">Nhập ID thú cưng:</label>
+          <input type="text" id="deleteOneId" placeholder="Nhập ID thú cưng" />
+          <button type="submit">Xóa thú cưng</button>
+        </form>
+        <p id="deleteOneResult"></p>
+      </div>
 
-        <label>Name:</label>
-        <input type="text" id="petName" name="Name" readonly />
-
-        <label>Age:</label>
-        <input type="number" id="petAge" name="Age" readonly />
-
-        <label>Price (VND):</label>
-        <input type="text" id="petPrice" name="Price" readonly />
-
-        <label>Species:</label>
-        <input type="text" id="petSpecies" name="Species" readonly />
-
-        <label>Gender:</label>
-        <input type="text" id="petGender" name="Gender" readonly />
-
-        <label>Describe:</label>
-        <textarea id="petDescribe" name="Describe" readonly></textarea>
-
-        <button type="submit">Xóa Pet</button>
-      </form>
-      <p id="result"></p>
+      <!-- Xóa nhiều thú cưng -->
+      <div class="section" id="deleteManySection" style="display: none;">
+        <h3>Xóa nhiều thú cưng</h3>
+        <form id="deleteManyForm">
+          <label for="deleteManyIds">Chọn thú cưng cần xóa:</label>
+          <select id="deleteManyIds" multiple size="10"></select>
+          <button type="submit">Xóa các thú cưng đã chọn</button>
+        </form>
+        <p id="deleteManyResult"></p>
+      </div>
     </div>
 
     <script>
-      let dsPET = [];
+      const deleteType = document.getElementById("deleteType");
+      const deleteOneSection = document.getElementById("deleteOneSection");
+      const deleteManySection = document.getElementById("deleteManySection");
 
-      fetch("/dsPET")
-        .then((response) => response.json())
-        .then((data) => {
-          dsPET = data;
-        });
-
-      function findPet() {
-        const input = document.getElementById("last3Digits").value.trim();
-        if (input.length !== 3) {
-          alert("Vui lòng nhập đúng 3 số cuối của ID!");
-          return;
-        }
-
-        const pet = dsPET.find((pet) => pet.ID.slice(-3) === input);
-
-        if (pet) {
-          document.getElementById("petID").value = pet.ID;
-          document.getElementById("petName").value = pet.Name;
-          document.getElementById("petAge").value = pet.Age;
-          document.getElementById("petPrice").value = pet.Price;
-          document.getElementById("petSpecies").value = pet.Species;
-          document.getElementById("petGender").value = pet.Gender;
-          document.getElementById("petDescribe").value = pet.Describe;
-          document.getElementById("deleteForm").style.display = "block";
+      // Chuyển đổi giữa xóa 1 và xóa nhiều
+      deleteType.addEventListener("change", () => {
+        if (deleteType.value === "one") {
+          deleteOneSection.style.display = "block";
+          deleteManySection.style.display = "none";
         } else {
-          alert("Không tìm thấy thú cưng với 3 số cuối này.");
-          document.getElementById("deleteForm").style.display = "none";
+          deleteOneSection.style.display = "none";
+          deleteManySection.style.display = "block";
+          loadPets(); // Tải danh sách thú cưng khi chọn xóa nhiều
+        }
+      });
+
+      // Tải danh sách thú cưng
+      async function loadPets() {
+        try {
+          const response = await fetch("/dsPET");
+          const pets = await response.json();
+
+          const select = document.getElementById("deleteManyIds");
+          select.innerHTML = ""; // Xóa danh sách cũ
+
+          pets.forEach((pet) => {
+            const option = document.createElement("option");
+            option.value = pet.ID;
+            option.textContent = `${pet.ID} - ${pet.Name}`;
+            select.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Lỗi khi tải danh sách thú cưng:", error);
         }
       }
 
-      document
-        .getElementById("deleteForm")
-        .addEventListener("submit", async function (event) {
-          event.preventDefault();
+      // Xóa 1 thú cưng
+      document.getElementById("deleteOneForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
 
-          const petIDToDelete = document.getElementById("petID").value;
+        const id = document.getElementById("deleteOneId").value;
+        if (!id) {
+          alert("Vui lòng nhập ID thú cưng!");
+          return;
+        }
 
-          try {
-            const response = await fetch("http://localhost:3000/delete-pet", {
-              method: "DELETE",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: petIDToDelete }), // Chỉ gửi ID
-            });
+        try {
+          const response = await fetch("/delete-one-pet", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id }),
+          });
 
-            const result = await response.json();
-            alert(result.message);
-            if (response.ok && result.deletedCount > 0) {
-              window.location.href = "/";
-            }
-          } catch (error) {
-            console.error("Lỗi khi xoá:", error);
-            alert("Lỗi khi kết nối đến server.");
-          }
-        });
+          const result = await response.json();
+          document.getElementById("deleteOneResult").textContent = result.message;
+        } catch (error) {
+          console.error("Lỗi khi xóa thú cưng:", error);
+        }
+      });
+
+      // Xóa nhiều thú cưng
+      document.getElementById("deleteManyForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const selectedOptions = Array.from(document.getElementById("deleteManyIds").selectedOptions);
+        const ids = selectedOptions.map((option) => option.value);
+
+        if (ids.length === 0) {
+          alert("Vui lòng chọn ít nhất một thú cưng để xóa!");
+          return;
+        }
+
+        try {
+          const response = await fetch("/delete-many-pets", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids }),
+          });
+
+          const result = await response.json();
+          document.getElementById("deleteManyResult").textContent = result.message;
+          loadPets(); // Tải lại danh sách thú cưng sau khi xóa
+        } catch (error) {
+          console.error("Lỗi khi xóa nhiều thú cưng:", error);
+        }
+      });
 
       function goBack() {
         window.location.href = "/";
