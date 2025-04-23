@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <title>Xóa thú cưng</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        width: 350px;
+        text-align: center;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      h2 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      label {
+        display: block;
+        text-align: left;
+        margin-top: 10px;
+        font-weight: bold;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+
+      textarea {
+        resize: none;
+        height: 80px;
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-top: 15px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+      }
+
+      button:hover {
+        background-color: #388e3c;
+      }
+
+      input[readonly] {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+      }
+
+      .btn-back {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 10;
+      }
+
+      .button-back {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .button-back:hover {
+        background-color: #388e3c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="btn-back">
+      <button type="button" class="button-back" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+    </div>
+    <div class="container">
+      <h2>Xóa thú cưng</h2>
+
+      <label>Nhập 3 số cuối của ID thú cưng:</label>
+      <input type="text" id="last3Digits" maxlength="3" placeholder="VD: 123" />
+      <button type="button" onclick="findPet()">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+
+      <form id="deleteForm" style="display: none">
+        <label>ID:</label>
+        <input type="text" id="petID" name="id" readonly />
+
+        <label>Name:</label>
+        <input type="text" id="petName" name="Name" readonly />
+
+        <label>Age:</label>
+        <input type="number" id="petAge" name="Age" readonly />
+
+        <label>Price (VND):</label>
+        <input type="text" id="petPrice" name="Price" readonly />
+
+        <label>Species:</label>
+        <input type="text" id="petSpecies" name="Species" readonly />
+
+        <label>Gender:</label>
+        <input type="text" id="petGender" name="Gender" readonly />
+
+        <label>Describe:</label>
+        <textarea id="petDescribe" name="Describe" readonly></textarea>
+
+        <button type="submit">Xóa Pet</button>
+      </form>
+      <p id="result"></p>
+    </div>
+
+    <script>
+      let dsPET = [];
+
+      fetch("/dsPET")
+        .then((response) => response.json())
+        .then((data) => {
+          dsPET = data;
+        });
+
+      function findPet() {
+        const input = document.getElementById("last3Digits").value.trim();
+        if (input.length !== 3) {
+          alert("Vui lòng nhập đúng 3 số cuối của ID!");
+          return;
+        }
+
+        const pet = dsPET.find((pet) => pet.ID.slice(-3) === input);
+
+        if (pet) {
+          document.getElementById("petID").value = pet.ID;
+          document.getElementById("petName").value = pet.Name;
+          document.getElementById("petAge").value = pet.Age;
+          document.getElementById("petPrice").value = pet.Price;
+          document.getElementById("petSpecies").value = pet.Species;
+          document.getElementById("petGender").value = pet.Gender;
+          document.getElementById("petDescribe").value = pet.Describe;
+          document.getElementById("deleteForm").style.display = "block";
+        } else {
+          alert("Không tìm thấy thú cưng với 3 số cuối này.");
+          document.getElementById("deleteForm").style.display = "none";
+        }
+      }
+
+      document
+        .getElementById("deleteForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const petIDToDelete = document.getElementById("petID").value;
+
+          try {
+            const response = await fetch("http://localhost:3000/delete-pet", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: petIDToDelete }), // Chỉ gửi ID
+            });
+
+            const result = await response.json();
+            alert(result.message);
+            if (response.ok && result.deletedCount > 0) {
+              window.location.href = "/";
+            }
+          } catch (error) {
+            console.error("Lỗi khi xoá:", error);
+            alert("Lỗi khi kết nối đến server.");
+          }
+        });
+
+      function goBack() {
+        window.location.href = "/";
+      }
+    </script>
+  </body>
+</html>

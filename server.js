@@ -1,3 +1,4 @@
+
 const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
@@ -64,7 +65,9 @@ app.get("/add.html", (req, res) => {
 app.get("/update.html", (req, res) => {
   res.sendFile(path.join(__dirname, "public/page/update.html"));
 });
-
+app.get("/delete-pet.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/page/delete-pet.html"));
+});
 
 // Thêm Pet
 app.post("/addPet", upload.single("image"), async (req, res) => {
@@ -151,45 +154,31 @@ app.get("/dsPET", async (req, res) => {
 });
 
 // ❗ API xoá pet từ MongoDB
-app.get("/delete.html", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/page/delete.html"));
+app.get("/delete-pet.html", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/page/delete-pet.html"));
 });
-app.post("/filter-pets", async (req, res) => {
+app.delete("/delete-pet", async (req, res) => {
   try {
     if (!petsCollection) throw new Error("Collection chưa được khởi tạo");
 
-    const { ID } = req.body;
+    const petIdToDelete = req.body.id; // Lấy giá trị ID từ req.body
+    console.log("📥 ID cần xoá:", petIdToDelete);
 
-    const filter = {};
-    if (ID) filter.ID = ID; // Tìm kiếm theo ID
-
-    const pets = await petsCollection.find(filter).toArray();
-    res.json(pets);
-  } catch (error) {
-    console.error("❌ Lỗi khi lọc pet:", error);
-    res.status(500).json({ message: "Lỗi server khi lọc pet" });
-  }
-});
-app.delete("/delete-pets", async (req, res) => {
-  try {
-    if (!petsCollection) throw new Error("Collection chưa được khởi tạo");
-
-    const { ids } = req.body;
-
-    if (!ids || ids.length === 0) {
-      return res.status(400).json({ message: "Danh sách ID không hợp lệ!" });
-    }
-
-    const result = await petsCollection.deleteMany({ ID: { $in: ids } });
+    const result = await petsCollection.deleteMany({ ID: petIdToDelete }); // Sử dụng ID làm điều kiện lọc
 
     if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Không tìm thấy pet phù hợp để xóa!" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy pet phù hợp để xoá" });
     }
 
-    res.json({ message: `Xóa thành công ${result.deletedCount} pet(s)!` });
+    res.json({
+      message: "Xoá pet thành công",
+      deletedCount: result.deletedCount,
+    });
   } catch (error) {
-    console.error("❌ Lỗi khi xóa pet:", error);
-    res.status(500).json({ message: "Lỗi server khi xóa pet" });
+    console.error("❌ Lỗi khi xoá pet:", error);
+    res.status(500).json({ message: "Lỗi server khi xoá pet" });
   }
 });
 
