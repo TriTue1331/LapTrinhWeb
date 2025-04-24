@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
     <title>Thêm thú cưng</title>
     <style>
       body {
@@ -52,7 +56,7 @@
       }
 
       button {
-        background-color: #007bff;
+        background-color: #4caf50;
         color: white;
         border: none;
         padding: 10px 15px;
@@ -64,15 +68,40 @@
       }
 
       button:hover {
-        background-color: #0056b3;
+        background-color: #388e3c;
       }
       input[readonly] {
         background-color: #e9ecef;
         cursor: not-allowed;
       }
+      .btn-back {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 10;
+      }
+
+      .button-back {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 12px;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .button-back:hover {
+        background-color: #388e3c;
+      }
     </style>
   </head>
   <body>
+    <div class="btn-back">
+      <button type="button" class="button-back" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+    </div>
     <div class="container">
       <h2>Thêm thú cưng mới</h2>
       <form id="petForm" enctype="multipart/form-data">
@@ -94,7 +123,7 @@
         <label>Gender:</label>
         <select name="gender" required>
           <option value="Male">Male</option>
-          <option value="Female">Female</option>
+<option value="Female">Female</option>
         </select>
 
         <label>Image:</label>
@@ -161,6 +190,9 @@
             alert("Lỗi: " + error.message);
           }
         });
+      function goBack() {
+        window.location.href = "/";
+      }
     </script>
   </body>
 </html>
